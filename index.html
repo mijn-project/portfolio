@@ -25,7 +25,7 @@
             letter-spacing: 2px;
         }
         
-        #canvas {
+        #canvas-bg {
             position: fixed;
             top: 0;
             left: 0;
@@ -96,9 +96,7 @@
             transition: width 0.3s;
         }
         
-        .nav-links a:hover::after {
-            width: 100%;
-        }
+        .nav-links a:hover::after { width: 100%; }
         
         .hero {
             min-height: 100vh;
@@ -271,9 +269,7 @@
             transition: left 0.6s;
         }
         
-        .skill-box:hover::before {
-            left: 100%;
-        }
+        .skill-box:hover::before { left: 100%; }
         
         .skill-box:hover {
             background: rgba(0,255,255,0.1);
@@ -321,6 +317,83 @@
         .about-content p span {
             color: var(--neon);
             font-weight: 700;
+        }
+        
+        .video-section {
+            padding: 6rem 0;
+        }
+        
+        .video-upload-area {
+            background: rgba(0,255,255,0.05);
+            border: 2px dashed var(--neon);
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 2rem;
+        }
+        
+        .video-upload-area:hover {
+            background: rgba(0,255,255,0.1);
+            box-shadow: 0 0 30px rgba(0,255,255,0.3);
+        }
+        
+        .video-upload-area p {
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        #videoFile {
+            display: none;
+        }
+        
+        .ascii-container {
+            background: var(--dark2);
+            border: 2px solid rgba(0,255,255,0.3);
+            padding: 2rem;
+            overflow: auto;
+            min-height: 400px;
+            margin: 2rem 0;
+            display: none;
+        }
+        
+        .ascii-container.active {
+            display: block;
+        }
+        
+        #asciiOutput {
+            color: var(--neon);
+            font-size: 0.6rem;
+            line-height: 0.8;
+            white-space: pre;
+            font-family: 'Courier New', monospace;
+            letter-spacing: -1px;
+        }
+        
+        .video-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .video-controls button {
+            padding: 0.8rem 2rem;
+            background: rgba(0,255,255,0.1);
+            border: 2px solid var(--neon);
+            color: var(--neon);
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .video-controls button:hover {
+            background: var(--neon);
+            color: var(--dark);
+            box-shadow: 0 0 20px rgba(0,255,255,0.5);
         }
         
         .contact-section {
@@ -380,11 +453,12 @@
             .nav-links { gap: 1rem; font-size: 0.7rem; }
             .section-title { font-size: 2rem; }
             .container { padding: 0 20px; }
+            #asciiOutput { font-size: 0.4rem; }
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas-bg"></canvas>
     
     <div class="content">
         <header>
@@ -393,7 +467,7 @@
                     <div class="logo">CIPHER</div>
                     <ul class="nav-links">
                         <li><a href="#skills">Skills</a></li>
-                        <li><a href="#about">About</a></li>
+                        <li><a href="#video">ASCII</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </nav>
@@ -405,7 +479,7 @@
                 <h1>MOHAMED</h1>
                 <p>Web Developer | Video Editor | Creative Technologist</p>
                 <p style="color: var(--neon); font-size: 0.9rem; margin-bottom: 2rem;">DISCIPLINE > MOTIVATION</p>
-                <a href="#contact" class="cta-button">Inquire Now</a>
+                <a href="#video" class="cta-button">Try ASCII</a>
                 <a href="https://instagram.com/gazout1" class="cta-button alt">Follow</a>
             </div>
         </section>
@@ -422,8 +496,8 @@
                         <div class="stat-label">Obsession Level</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number">19</div>
-                        <div class="stat-label">Age | Antwerp</div>
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Creativity</div>
                     </div>
                 </div>
             </div>
@@ -461,11 +535,34 @@
             </div>
         </section>
 
-        <section class="about-section" id="about">
+        <section class="video-section" id="video">
+            <div class="container">
+                <h2 class="section-title">ASCII Video <span>Player</span></h2>
+                
+                <div class="video-upload-area" id="uploadArea">
+                    <p>📤 DRAG & DROP YOUR VIDEO OR CLICK TO UPLOAD</p>
+                    <p style="font-size: 0.9rem; color: var(--neon);">MP4, WebM, Ogg - Max 50MB</p>
+                </div>
+                
+                <input type="file" id="videoFile" accept="video/*">
+                
+                <div class="ascii-container" id="asciiContainer">
+                    <pre id="asciiOutput"></pre>
+                </div>
+                
+                <div class="video-controls" id="videoControls" style="display: none;">
+                    <button id="playBtn">▶ PLAY</button>
+                    <button id="pauseBtn">⏸ PAUSE</button>
+                    <button id="stopBtn">⏹ STOP</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="about-section">
             <div class="container about-content">
                 <h2 class="section-title">Philosophy</h2>
                 <p><span>DISCIPLINE</span> over motivation. <span>EXECUTION</span> over talking. <span>OBSESSION</span> with quality.</p>
-                <p>19 years old. Building websites & editing videos from Antwerp. Every project treated like it's the last one I'll ever make.</p>
+                <p>Creative technologist pushing boundaries. Every pixel counts.</p>
                 <p>No shortcuts. No excuses. <span>Just work.</span></p>
             </div>
         </section>
@@ -487,69 +584,202 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const canvasBg = document.getElementById('canvas-bg');
+        const ctxBg = canvasBg.getContext('2d');
         
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvasBg.width = window.innerWidth;
+        canvasBg.height = window.innerHeight;
         
-        let time = 0;
+        let timeBg = 0;
         
         function drawBackground() {
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            const gradient = ctxBg.createLinearGradient(0, 0, canvasBg.width, canvasBg.height);
             gradient.addColorStop(0, '#0a0a0a');
             gradient.addColorStop(0.5, '#111111');
             gradient.addColorStop(1, '#0a0a0a');
             
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctxBg.fillStyle = gradient;
+            ctxBg.fillRect(0, 0, canvasBg.width, canvasBg.height);
             
-            time += 0.01;
+            timeBg += 0.01;
             
-            ctx.strokeStyle = 'rgba(232, 232, 232, 0.1)';
-            ctx.lineWidth = 2;
+            ctxBg.strokeStyle = 'rgba(232, 232, 232, 0.1)';
+            ctxBg.lineWidth = 2;
             
             for (let i = 0; i < 8; i++) {
-                ctx.save();
-                ctx.translate(canvas.width / 2, canvas.height / 2);
-                ctx.rotate((time + i * Math.PI / 4));
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, 300 + Math.sin(time) * 50);
-                ctx.stroke();
-                ctx.restore();
+                ctxBg.save();
+                ctxBg.translate(canvasBg.width / 2, canvasBg.height / 2);
+                ctxBg.rotate((timeBg + i * Math.PI / 4));
+                ctxBg.beginPath();
+                ctxBg.moveTo(0, 0);
+                ctxBg.lineTo(0, 300 + Math.sin(timeBg) * 50);
+                ctxBg.stroke();
+                ctxBg.restore();
             }
             
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+            ctxBg.fillStyle = 'rgba(0, 255, 255, 0.3)';
             for (let i = 0; i < 50; i++) {
-                const x = (Math.sin(time * 0.5 + i) * canvas.width / 2) + canvas.width / 2;
-                const y = (Math.cos(time * 0.7 + i) * canvas.height / 2) + canvas.height / 2;
-                const size = 2 + Math.sin(time + i) * 1;
-                ctx.fillRect(x, y, size, size);
+                const x = (Math.sin(timeBg * 0.5 + i) * canvasBg.width / 2) + canvasBg.width / 2;
+                const y = (Math.cos(timeBg * 0.7 + i) * canvasBg.height / 2) + canvasBg.height / 2;
+                const size = 2 + Math.sin(timeBg + i) * 1;
+                ctxBg.fillRect(x, y, size, size);
             }
             
-            ctx.strokeStyle = 'rgba(232, 232, 232, 0.03)';
-            ctx.lineWidth = 1;
+            ctxBg.strokeStyle = 'rgba(232, 232, 232, 0.03)';
+            ctxBg.lineWidth = 1;
             const gridSize = 50;
             
-            for (let x = 0; x < canvas.width; x += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(x + Math.sin(time * 0.5) * 10, 0);
-                ctx.lineTo(x + Math.sin(time * 0.5) * 10, canvas.height);
-                ctx.stroke();
+            for (let x = 0; x < canvasBg.width; x += gridSize) {
+                ctxBg.beginPath();
+                ctxBg.moveTo(x + Math.sin(timeBg * 0.5) * 10, 0);
+                ctxBg.lineTo(x + Math.sin(timeBg * 0.5) * 10, canvasBg.height);
+                ctxBg.stroke();
             }
             
-            for (let y = 0; y < canvas.height; y += gridSize) {
-                ctx.beginPath();
-                ctx.moveTo(0, y + Math.cos(time * 0.5) * 10);
-                ctx.lineTo(canvas.width, y + Math.cos(time * 0.5) * 10);
-                ctx.stroke();
+            for (let y = 0; y < canvasBg.height; y += gridSize) {
+                ctxBg.beginPath();
+                ctxBg.moveTo(0, y + Math.cos(timeBg * 0.5) * 10);
+                ctxBg.lineTo(canvasBg.width, y + Math.cos(timeBg * 0.5) * 10);
+                ctxBg.stroke();
             }
             
             requestAnimationFrame(drawBackground);
         }
         
         drawBackground();
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const videoFile = document.getElementById('videoFile');
+        const asciiContainer = document.getElementById('asciiContainer');
+        const asciiOutput = document.getElementById('asciiOutput');
+        const videoControls = document.getElementById('videoControls');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        
+        let video = null;
+        let isPlaying = false;
+        let animationId = null;
+        
+        const asciiChars = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ','];
+        const colors = ['#00ffff', '#00ff88', '#00ff00', '#88ff00', '#ffff00', '#ff8800', '#ff0000', '#ff0088'];
+        
+        uploadArea.addEventListener('click', () => videoFile.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = 'rgba(0,255,255,0.2)';
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.background = 'rgba(0,255,255,0.05)';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.background = 'rgba(0,255,255,0.05)';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleVideoUpload(files[0]);
+            }
+        });
+        
+        videoFile.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleVideoUpload(e.target.files[0]);
+            }
+        });
+        
+        function handleVideoUpload(file) {
+            const url = URL.createObjectURL(file);
+            video = document.createElement('video');
+            video.src = url;
+            video.crossOrigin = 'anonymous';
+            
+            asciiContainer.classList.add('active');
+            videoControls.style.display = 'flex';
+            
+            uploadArea.innerHTML = '✅ VIDEO LOADED - READY TO PLAY';
+            uploadArea.style.background = 'rgba(0,255,255,0.05)';
+        }
+        
+        function convertToASCII() {
+            if (!video || video.readyState !== video.HAVE_FUTURE_DATA && video.readyState !== video.HAVE_CURRENT_DATA) {
+                return;
+            }
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 120;
+            canvas.height = 40;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            let asciiArt = '';
+            
+            for (let i = 0; i < canvas.height; i++) {
+                for (let j = 0; j < canvas.width; j++) {
+                    const index = (i * canvas.width + j) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    const brightness = (r + g + b) / 3;
+                    
+                    const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1));
+                    const colorIndex = Math.floor((brightness / 255) * (colors.length - 1));
+                    const char = asciiChars[charIndex];
+                    const color = colors[colorIndex];
+                    
+                    asciiArt += `<span style="color: ${color}">${char}</span>`;
+                }
+                asciiArt += '\n';
+            }
+            
+            asciiOutput.innerHTML = asciiArt;
+        }
+        
+        function playASCII() {
+            if (!video) return;
+            isPlaying = true;
+            video.play();
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            function render() {
+                convertToASCII();
+                if (isPlaying && video.currentTime < video.duration) {
+                    animationId = requestAnimationFrame(render);
+                }
+            }
+            
+            render();
+        }
+        
+        function pauseASCII() {
+            if (!video) return;
+            isPlaying = false;
+            video.pause();
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            if (animationId) cancelAnimationFrame(animationId);
+        }
+        
+        function stopASCII() {
+            if (!video) return;
+            isPlaying = false;
+            video.currentTime = 0;
+            video.pause();
+            asciiOutput.innerHTML = '';
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            if (animationId) cancelAnimationFrame(animationId);
+        }
+        
+        playBtn.addEventListener('click', playASCII);
+        pauseBtn.addEventListener('click', pauseASCII);
+        stopBtn.addEventListener('click', stopASCII);
         
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
@@ -562,8 +792,8 @@
         });
         
         window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvasBg.width = window.innerWidth;
+            canvasBg.height = window.innerHeight;
         });
     </script>
 </body>
