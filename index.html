@@ -173,7 +173,6 @@
         
         .stats-section {
             padding: 6rem 0;
-            position: relative;
         }
         
         .stats-grid {
@@ -319,11 +318,11 @@
             font-weight: 700;
         }
         
-        .video-section {
+        .ascii-section {
             padding: 6rem 0;
         }
         
-        .video-upload-area {
+        .upload-area {
             background: rgba(0,255,255,0.05);
             border: 2px dashed var(--neon);
             padding: 3rem;
@@ -333,22 +332,22 @@
             margin-bottom: 2rem;
         }
         
-        .video-upload-area:hover {
+        .upload-area:hover {
             background: rgba(0,255,255,0.1);
             box-shadow: 0 0 30px rgba(0,255,255,0.3);
         }
         
-        .video-upload-area p {
+        .upload-area p {
             color: var(--accent);
             font-size: 1.1rem;
             margin-bottom: 1rem;
         }
         
-        #videoFile {
+        #imageFile {
             display: none;
         }
         
-        .ascii-container {
+        .ascii-output {
             background: var(--dark2);
             border: 2px solid rgba(0,255,255,0.3);
             padding: 2rem;
@@ -358,27 +357,28 @@
             display: none;
         }
         
-        .ascii-container.active {
+        .ascii-output.active {
             display: block;
         }
         
-        #asciiOutput {
+        #asciiResult {
             color: var(--neon);
-            font-size: 0.6rem;
-            line-height: 0.8;
+            font-size: 0.5rem;
+            line-height: 0.7;
             white-space: pre;
             font-family: 'Courier New', monospace;
             letter-spacing: -1px;
         }
         
-        .video-controls {
+        .ascii-controls {
             display: flex;
             gap: 1rem;
             justify-content: center;
             margin-top: 2rem;
+            flex-wrap: wrap;
         }
         
-        .video-controls button {
+        .ascii-controls button {
             padding: 0.8rem 2rem;
             background: rgba(0,255,255,0.1);
             border: 2px solid var(--neon);
@@ -390,7 +390,7 @@
             transition: all 0.3s;
         }
         
-        .video-controls button:hover {
+        .ascii-controls button:hover {
             background: var(--neon);
             color: var(--dark);
             box-shadow: 0 0 20px rgba(0,255,255,0.5);
@@ -453,7 +453,7 @@
             .nav-links { gap: 1rem; font-size: 0.7rem; }
             .section-title { font-size: 2rem; }
             .container { padding: 0 20px; }
-            #asciiOutput { font-size: 0.4rem; }
+            #asciiResult { font-size: 0.35rem; }
         }
     </style>
 </head>
@@ -467,7 +467,7 @@
                     <div class="logo">CIPHER</div>
                     <ul class="nav-links">
                         <li><a href="#skills">Skills</a></li>
-                        <li><a href="#video">ASCII</a></li>
+                        <li><a href="#ascii">ASCII Art</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                 </nav>
@@ -479,7 +479,7 @@
                 <h1>MOHAMED</h1>
                 <p>Web Developer | Video Editor | Creative Technologist</p>
                 <p style="color: var(--neon); font-size: 0.9rem; margin-bottom: 2rem;">DISCIPLINE > MOTIVATION</p>
-                <a href="#video" class="cta-button">Try ASCII</a>
+                <a href="#ascii" class="cta-button">Try ASCII Art</a>
                 <a href="https://instagram.com/gazout1" class="cta-button alt">Follow</a>
             </div>
         </section>
@@ -535,25 +535,25 @@
             </div>
         </section>
 
-        <section class="video-section" id="video">
+        <section class="ascii-section" id="ascii">
             <div class="container">
-                <h2 class="section-title">ASCII Video <span>Player</span></h2>
+                <h2 class="section-title">ASCII Art <span>Generator</span></h2>
                 
-                <div class="video-upload-area" id="uploadArea">
-                    <p>📤 DRAG & DROP YOUR VIDEO OR CLICK TO UPLOAD</p>
-                    <p style="font-size: 0.9rem; color: var(--neon);">MP4, WebM, Ogg - Max 50MB</p>
+                <div class="upload-area" id="uploadArea">
+                    <p>📤 DRAG & DROP YOUR IMAGE OR CLICK TO UPLOAD</p>
+                    <p style="font-size: 0.9rem; color: var(--neon);">JPG, PNG, GIF - Any Size</p>
                 </div>
                 
-                <input type="file" id="videoFile" accept="video/*">
+                <input type="file" id="imageFile" accept="image/*">
                 
-                <div class="ascii-container" id="asciiContainer">
-                    <pre id="asciiOutput"></pre>
+                <div class="ascii-output" id="asciiOutput">
+                    <pre id="asciiResult"></pre>
                 </div>
                 
-                <div class="video-controls" id="videoControls" style="display: none;">
-                    <button id="playBtn">▶ PLAY</button>
-                    <button id="pauseBtn">⏸ PAUSE</button>
-                    <button id="stopBtn">⏹ STOP</button>
+                <div class="ascii-controls" id="asciiControls" style="display: none;">
+                    <button id="downloadBtn">⬇ DOWNLOAD ASCII</button>
+                    <button id="copyBtn">📋 COPY ASCII</button>
+                    <button id="resetBtn">🔄 RESET</button>
                 </div>
             </div>
         </section>
@@ -584,6 +584,7 @@
     </div>
 
     <script>
+        // Background Canvas
         const canvasBg = document.getElementById('canvas-bg');
         const ctxBg = canvasBg.getContext('2d');
         
@@ -648,23 +649,20 @@
         
         drawBackground();
         
+        // ASCII Art Generator
         const uploadArea = document.getElementById('uploadArea');
-        const videoFile = document.getElementById('videoFile');
-        const asciiContainer = document.getElementById('asciiContainer');
+        const imageFile = document.getElementById('imageFile');
         const asciiOutput = document.getElementById('asciiOutput');
-        const videoControls = document.getElementById('videoControls');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
+        const asciiResult = document.getElementById('asciiResult');
+        const asciiControls = document.getElementById('asciiControls');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const resetBtn = document.getElementById('resetBtn');
         
-        let video = null;
-        let isPlaying = false;
-        let animationId = null;
+        const asciiChars = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ',', '.'];
+        const colors = ['#ff0000', '#ff6600', '#ffff00', '#00ff00', '#00ffff', '#0088ff', '#0000ff', '#ff00ff'];
         
-        const asciiChars = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ','];
-        const colors = ['#00ffff', '#00ff88', '#00ff00', '#88ff00', '#ffff00', '#ff8800', '#ff0000', '#ff0088'];
-        
-        uploadArea.addEventListener('click', () => videoFile.click());
+        uploadArea.addEventListener('click', () => imageFile.click());
         
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -678,57 +676,65 @@
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.style.background = 'rgba(0,255,255,0.05)';
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleVideoUpload(files[0]);
+            if (e.dataTransfer.files.length > 0) {
+                handleImageUpload(e.dataTransfer.files[0]);
             }
         });
         
-        videoFile.addEventListener('change', (e) => {
+        imageFile.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
-                handleVideoUpload(e.target.files[0]);
+                handleImageUpload(e.target.files[0]);
             }
         });
         
-        function handleVideoUpload(file) {
-            const url = URL.createObjectURL(file);
-            video = document.createElement('video');
-            video.src = url;
-            video.crossOrigin = 'anonymous';
+        function handleImageUpload(file) {
+            const reader = new FileReader();
             
-            asciiContainer.classList.add('active');
-            videoControls.style.display = 'flex';
+            reader.onload = (e) => {
+                const img = new Image();
+                
+                img.onload = () => {
+                    convertImageToASCII(img);
+                    uploadArea.innerHTML = '✅ IMAGE LOADED';
+                    uploadArea.style.background = 'rgba(0,255,255,0.05)';
+                    asciiOutput.classList.add('active');
+                    asciiControls.style.display = 'flex';
+                };
+                
+                img.src = e.target.result;
+            };
             
-            uploadArea.innerHTML = '✅ VIDEO LOADED - READY TO PLAY';
-            uploadArea.style.background = 'rgba(0,255,255,0.05)';
+            reader.readAsDataURL(file);
         }
         
-        function convertToASCII() {
-            if (!video || video.readyState !== video.HAVE_FUTURE_DATA && video.readyState !== video.HAVE_CURRENT_DATA) {
-                return;
-            }
-            
+        function convertImageToASCII(img) {
             const canvas = document.createElement('canvas');
-            canvas.width = 120;
-            canvas.height = 40;
-            const ctx = canvas.getContext('2d');
+            const width = 100;
+            const height = 50;
             
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = width;
+            canvas.height = height;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const imageData = ctx.getImageData(0, 0, width, height);
             const data = imageData.data;
             
             let asciiArt = '';
             
-            for (let i = 0; i < canvas.height; i++) {
-                for (let j = 0; j < canvas.width; j++) {
-                    const index = (i * canvas.width + j) * 4;
+            for (let i = 0; i < height; i++) {
+                for (let j = 0; j < width; j++) {
+                    const index = (i * width + j) * 4;
                     const r = data[index];
                     const g = data[index + 1];
                     const b = data[index + 2];
+                    
                     const brightness = (r + g + b) / 3;
                     
                     const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1));
                     const colorIndex = Math.floor((brightness / 255) * (colors.length - 1));
+                    
                     const char = asciiChars[charIndex];
                     const color = colors[colorIndex];
                     
@@ -737,49 +743,37 @@
                 asciiArt += '\n';
             }
             
-            asciiOutput.innerHTML = asciiArt;
+            asciiResult.innerHTML = asciiArt;
         }
         
-        function playASCII() {
-            if (!video) return;
-            isPlaying = true;
-            video.play();
-            playBtn.disabled = true;
-            pauseBtn.disabled = false;
-            
-            function render() {
-                convertToASCII();
-                if (isPlaying && video.currentTime < video.duration) {
-                    animationId = requestAnimationFrame(render);
-                }
-            }
-            
-            render();
-        }
+        downloadBtn.addEventListener('click', () => {
+            const text = asciiResult.innerText;
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', 'ascii-art.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
         
-        function pauseASCII() {
-            if (!video) return;
-            isPlaying = false;
-            video.pause();
-            playBtn.disabled = false;
-            pauseBtn.disabled = true;
-            if (animationId) cancelAnimationFrame(animationId);
-        }
+        copyBtn.addEventListener('click', () => {
+            const text = asciiResult.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.textContent = '✅ COPIED!';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 COPY ASCII';
+                }, 2000);
+            });
+        });
         
-        function stopASCII() {
-            if (!video) return;
-            isPlaying = false;
-            video.currentTime = 0;
-            video.pause();
-            asciiOutput.innerHTML = '';
-            playBtn.disabled = false;
-            pauseBtn.disabled = true;
-            if (animationId) cancelAnimationFrame(animationId);
-        }
-        
-        playBtn.addEventListener('click', playASCII);
-        pauseBtn.addEventListener('click', pauseASCII);
-        stopBtn.addEventListener('click', stopASCII);
+        resetBtn.addEventListener('click', () => {
+            asciiResult.innerHTML = '';
+            asciiOutput.classList.remove('active');
+            asciiControls.style.display = 'none';
+            uploadArea.innerHTML = '📤 DRAG & DROP YOUR IMAGE OR CLICK TO UPLOAD<p style="font-size: 0.9rem; color: var(--neon);">JPG, PNG, GIF - Any Size</p>';
+            imageFile.value = '';
+        });
         
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
