@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII.VIDEO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #0f0f0f;
+    --border: #1e1e1e;
+    --accent: #c8ff00;
+    --text: #e0e0e0;
+    --muted: #555;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(8,8,8,0.97);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--muted); }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 60px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    background: var(--surface);
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(200,255,0,0.03);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-family: var(--mono);
+    font-size: 40px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .upload-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .upload-sub {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,255,0,0.08); }
+  .btn.primary { border-color: var(--accent); color: var(--bg); background: var(--accent); font-weight: 700; }
+  .btn.primary:hover { background: #d4ff1a; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .mode-toggle .btn {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .mode-toggle .btn:last-child { border-right: none; }
+
+  .separator {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 80px;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* OUTPUT — now a canvas instead of <pre> */
+  .output-wrap {
+    position: relative;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 200px;
+  }
+
+  #ascii-canvas {
+    display: block;
+    width: 100%;
+    image-rendering: pixelated;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .status-dot.active { background: var(--accent); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero {
+    text-align: center;
+    padding: 20px 0 40px;
+  }
+
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(32px, 6vw, 72px);
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .hero-title em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 2px;
+  }
+
+  .export-bar {
+    display: flex;
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  .progress-wrap {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .container { padding: 20px 12px; }
+    .controls { gap: 8px; }
+    .btn { padding: 8px 12px; font-size: 11px; }
+  }
+
+  .player-section { display: none; }
+  .player-section.visible { display: block; }
+
+  #hidden-video {
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+    width: 320px;
+    height: 240px;
+  }
+
+  #hidden-canvas { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">ASCII<span>.</span>VIDEO</div>
+  <div class="header-tag">NO LAG // CANVAS RENDER</div>
+</header>
+
+<div class="container">
+
+  <div class="hero" id="hero-section">
+    <div class="hero-title">CONVERT VIDEO<br>TO <em>ASCII</em></div>
+    <div class="hero-sub">// CLASSIC &amp; COLORED // ZERO LAG //</div>
+  </div>
+
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="file-input" accept="video/*">
+    <span class="upload-icon">▶</span>
+    <div class="upload-title">Drop a video here</div>
+    <div class="upload-sub">MP4, WEBM, MOV — processed locally, never uploaded</div>
+  </div>
+
+  <div class="player-section" id="player-section">
+
+    <div class="controls">
+      <button class="btn primary" id="play-btn">▶ PLAY</button>
+      <button class="btn" id="stop-btn">■ STOP</button>
+
+      <div class="separator"></div>
+
+      <div class="mode-toggle">
+        <button class="btn active" id="mode-mono" onclick="setMode('mono')">MONO</button>
+        <button class="btn" id="mode-color" onclick="setMode('color')">COLOR</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="slider-wrap">
+        DETAIL
+        <input type="range" id="detail-slider" min="40" max="220" value="100">
+        <span id="detail-val">100</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="slider-wrap">
+        FPS
+        <input type="range" id="fps-slider" min="5" max="30" value="15">
+        <span id="fps-val">15</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <button class="btn" id="change-video-btn">↑ NEW VIDEO</button>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="output-wrap">
+      <!-- Canvas-based rendering — no DOM span spam -->
+      <canvas id="ascii-canvas"></canvas>
+      <div class="status-bar">
+        <div>
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">IDLE</span>
+        </div>
+        <div id="frame-info">—</div>
+      </div>
+    </div>
+
+    <div class="export-bar">
+      <button class="btn" id="export-frame-btn">⬇ EXPORT FRAME (TXT)</button>
+      <button class="btn" id="copy-frame-btn">⎘ COPY FRAME</button>
+    </div>
+
+  </div>
+</div>
+
+<video id="hidden-video" muted playsinline></video>
+<canvas id="hidden-canvas"></canvas>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const CHARS = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
+const CHAR_FONT_SIZE = 7;   // px on the output canvas
+const CHAR_W = CHAR_FONT_SIZE * 0.6;  // approx char cell width
+const CHAR_H = CHAR_FONT_SIZE * 1.1;  // approx char cell height
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let mode = 'mono';
+let isPlaying = false;
+let animFrame = null;
+let lastFrameTime = 0;
+let targetFPS = 15;
+let asciiWidth = 100;
+let lastTextFrame = '';  // for export
+
+const video    = document.getElementById('hidden-video');
+const srcCanvas = document.getElementById('hidden-canvas');
+const srcCtx   = srcCanvas.getContext('2d', { willReadFrequently: true });
+
+const outCanvas = document.getElementById('ascii-canvas');
+const outCtx    = outCanvas.getContext('2d');
+
+// ─── UPLOAD ──────────────────────────────────────────────────────────────────
+const fileInput  = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('video/')) loadVideo(file);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) loadVideo(e.target.files[0]); });
+
+document.getElementById('change-video-btn').addEventListener('click', () => {
+  stopPlayback();
+  document.getElementById('player-section').classList.remove('visible');
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('hero-section').style.display = 'block';
+  fileInput.value = '';
+});
+
+function loadVideo(file) {
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  video.load();
+  video.addEventListener('loadedmetadata', () => {
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('hero-section').style.display = 'none';
+    document.getElementById('player-section').classList.add('visible');
+    setStatus('READY', false);
+    renderFrame();
+  }, { once: true });
+}
+
+// ─── PLAYBACK ────────────────────────────────────────────────────────────────
+document.getElementById('play-btn').addEventListener('click', () => {
+  if (isPlaying) pausePlayback(); else startPlayback();
+});
+document.getElementById('stop-btn').addEventListener('click', stopPlayback);
+
+function startPlayback() {
+  isPlaying = true;
+  video.play();
+  document.getElementById('play-btn').textContent = '⏸ PAUSE';
+  setStatus('PLAYING', true);
+  lastFrameTime = performance.now();
+  animFrame = requestAnimationFrame(loop);
+}
+
+function pausePlayback() {
+  isPlaying = false;
+  video.pause();
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('PAUSED', false);
+  if (animFrame) cancelAnimationFrame(animFrame);
+}
+
+function stopPlayback() {
+  isPlaying = false;
+  video.pause();
+  video.currentTime = 0;
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('STOPPED', false);
+  if (animFrame) cancelAnimationFrame(animFrame);
+  renderFrame();
+}
+
+function loop(timestamp) {
+  if (!isPlaying) return;
+  const interval = 1000 / targetFPS;
+  if (timestamp - lastFrameTime >= interval) {
+    renderFrame();
+    lastFrameTime = timestamp;
+    updateProgress();
+  }
+  animFrame = requestAnimationFrame(loop);
+}
+
+video.addEventListener('ended', () => {
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('ENDED', false);
+  if (animFrame) cancelAnimationFrame(animFrame);
+});
+
+// ─── CORE RENDER (canvas-based, zero DOM spam) ───────────────────────────────
+function renderFrame() {
+  const cols = asciiWidth;
+  const aspect = video.videoHeight / video.videoWidth || 9/16;
+  const rows = Math.max(1, Math.floor(cols * aspect * 0.45));
+
+  // 1. Sample video → tiny canvas
+  srcCanvas.width  = cols;
+  srcCanvas.height = rows;
+  srcCtx.drawImage(video, 0, 0, cols, rows);
+  const { data } = srcCtx.getImageData(0, 0, cols, rows);
+
+  // 2. Size output canvas to fit chars
+  const cw = Math.ceil(cols * CHAR_W);
+  const ch = Math.ceil(rows * CHAR_H);
+  outCanvas.width  = cw;
+  outCanvas.height = ch;
+
+  // 3. Paint background
+  outCtx.fillStyle = '#000';
+  outCtx.fillRect(0, 0, cw, ch);
+
+  // 4. Draw chars
+  outCtx.font = `${CHAR_FONT_SIZE}px 'Share Tech Mono', monospace`;
+  outCtx.textBaseline = 'top';
+
+  let textRows = [];
+
+  for (let y = 0; y < rows; y++) {
+    let rowStr = '';
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const r = data[i], g = data[i+1], b = data[i+2];
+      const brightness = (0.299*r + 0.587*g + 0.114*b) / 255;
+      const ch = CHARS[Math.floor(brightness * (CHARS.length - 1))];
+      rowStr += ch;
+
+      if (mode === 'color') {
+        outCtx.fillStyle = `rgb(${r},${g},${b})`;
+      } else {
+        outCtx.fillStyle = '#c8ff00';
+      }
+      outCtx.fillText(ch, x * CHAR_W, y * CHAR_H);
+    }
+    textRows.push(rowStr);
+  }
+
+  lastTextFrame = textRows.join('\n');
+
+  document.getElementById('frame-info').textContent =
+    `${cols}×${rows} chars | ${Math.floor(video.currentTime)}s`;
+}
+
+// ─── MODE ────────────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-mono').classList.toggle('active', m === 'mono');
+  document.getElementById('mode-color').classList.toggle('active', m === 'color');
+  if (!isPlaying) renderFrame();
+}
+
+// ─── SLIDERS ─────────────────────────────────────────────────────────────────
+document.getElementById('detail-slider').addEventListener('input', function() {
+  asciiWidth = parseInt(this.value);
+  document.getElementById('detail-val').textContent = this.value;
+  if (!isPlaying) renderFrame();
+});
+
+document.getElementById('fps-slider').addEventListener('input', function() {
+  targetFPS = parseInt(this.value);
+  document.getElementById('fps-val').textContent = this.value;
+});
+
+// ─── PROGRESS ────────────────────────────────────────────────────────────────
+function updateProgress() {
+  if (!video.duration) return;
+  document.getElementById('progress-bar').style.width =
+    (video.currentTime / video.duration * 100) + '%';
+}
+
+// ─── STATUS ──────────────────────────────────────────────────────────────────
+function setStatus(text, active) {
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-dot').classList.toggle('active', active);
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+document.getElementById('export-frame-btn').addEventListener('click', () => {
+  const blob = new Blob([lastTextFrame], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ascii-frame.txt';
+  a.click();
+});
+
+document.getElementById('copy-frame-btn').addEventListener('click', () => {
+  navigator.clipboard.writeText(lastTextFrame).then(() => {
+    const btn = document.getElementById('copy-frame-btn');
+    btn.textContent = '✓ COPIED';
+    setTimeout(() => btn.textContent = '⎘ COPY FRAME', 1500);
+  });
+});
+</script>
+</body>
+</html>
