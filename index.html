@@ -387,9 +387,25 @@
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CHARS = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
-const CHAR_FONT_SIZE = 7;   // px on the output canvas
-const CHAR_W = CHAR_FONT_SIZE * 0.6;  // approx char cell width
-const CHAR_H = CHAR_FONT_SIZE * 1.1;  // approx char cell height
+const CHAR_FONT_SIZE = 7;
+const CHAR_W = 4.3;   // tight monospace cell width px
+const CHAR_H = 7.7;   // cell height px
+
+// ─── SPRITE SHEET ────────────────────────────────────────────────────────────
+// Pre-render every ASCII char once (white on black) into an offscreen canvas.
+// At render time we just drawImage() the right slice — no fillText() per char.
+const sprite = document.createElement('canvas');
+const spriteCtx = sprite.getContext('2d');
+sprite.width  = Math.ceil(CHAR_W) * CHARS.length;
+sprite.height = Math.ceil(CHAR_H);
+spriteCtx.fillStyle = '#000';
+spriteCtx.fillRect(0, 0, sprite.width, sprite.height);
+spriteCtx.fillStyle = '#fff';
+spriteCtx.font = `${CHAR_FONT_SIZE}px 'Share Tech Mono', monospace`;
+spriteCtx.textBaseline = 'top';
+for (let i = 0; i < CHARS.length; i++) {
+  spriteCtx.fillText(CHARS[i], i * CHAR_W, 0);
+}
 
 // ─── STATE ───────────────────────────────────────────────────────────────────
 let mode = 'mono';
@@ -398,11 +414,11 @@ let animFrame = null;
 let lastFrameTime = 0;
 let targetFPS = 15;
 let asciiWidth = 100;
-let lastTextFrame = '';  // for export
+let lastTextFrame = '';
 
-const video    = document.getElementById('hidden-video');
+const video     = document.getElementById('hidden-video');
 const srcCanvas = document.getElementById('hidden-canvas');
-const srcCtx   = srcCanvas.getContext('2d', { willReadFrequently: true });
+const srcCtx    = srcCanvas.getContext('2d', { willReadFrequently: true });
 
 const outCanvas = document.getElementById('ascii-canvas');
 const outCtx    = outCanvas.getContext('2d');
@@ -493,7 +509,11 @@ video.addEventListener('ended', () => {
   if (animFrame) cancelAnimationFrame(animFrame);
 });
 
-// ─── CORE RENDER (canvas-based, zero DOM spam) ───────────────────────────────
+// ─── CORE RENDER — sprite sheet, zero fillText/fillStyle per char ─────────────
+// Strategy:
+//   MONO:  draw all chars in one pass using drawImage() from sprite sheet, tint green via multiply
+//   COLOR: build a tint canvas (one pixel per char = that char's color),
+//          scale it up, multiply over the white-on-black sprite render → colored ASCII, fast.
 function renderFrame() {
   const cols = asciiWidth;
   const aspect = video.videoHeight / video.videoWidth || 9/16;
@@ -505,42 +525,69 @@ function renderFrame() {
   srcCtx.drawImage(video, 0, 0, cols, rows);
   const { data } = srcCtx.getImageData(0, 0, cols, rows);
 
-  // 2. Size output canvas to fit chars
+  // 2. Size output canvas
   const cw = Math.ceil(cols * CHAR_W);
   const ch = Math.ceil(rows * CHAR_H);
   outCanvas.width  = cw;
   outCanvas.height = ch;
 
-  // 3. Paint background
+  // 3. Build brightness index array + text rows (cheap, no canvas ops)
+  const charIdx = new Uint8Array(cols * rows);
+  const textRows = [];
+  for (let y = 0; y < rows; y++) {
+    let row = '';
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const lum = (0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2]) / 255;
+      const idx = Math.min(CHARS.length - 1, Math.floor(lum * CHARS.length));
+      charIdx[y * cols + x] = idx;
+      row += CHARS[idx];
+    }
+    textRows.push(row);
+  }
+  lastTextFrame = textRows.join('\n');
+
+  // 4. Render chars from sprite sheet (white on black) — one drawImage per char
   outCtx.fillStyle = '#000';
   outCtx.fillRect(0, 0, cw, ch);
 
-  // 4. Draw chars
-  outCtx.font = `${CHAR_FONT_SIZE}px 'Share Tech Mono', monospace`;
-  outCtx.textBaseline = 'top';
-
-  let textRows = [];
-
   for (let y = 0; y < rows; y++) {
-    let rowStr = '';
     for (let x = 0; x < cols; x++) {
-      const i = (y * cols + x) * 4;
-      const r = data[i], g = data[i+1], b = data[i+2];
-      const brightness = (0.299*r + 0.587*g + 0.114*b) / 255;
-      const ch = CHARS[Math.floor(brightness * (CHARS.length - 1))];
-      rowStr += ch;
-
-      if (mode === 'color') {
-        outCtx.fillStyle = `rgb(${r},${g},${b})`;
-      } else {
-        outCtx.fillStyle = '#c8ff00';
-      }
-      outCtx.fillText(ch, x * CHAR_W, y * CHAR_H);
+      const idx = charIdx[y * cols + x];
+      if (idx === 0) continue; // space = skip
+      outCtx.drawImage(
+        sprite,
+        idx * CHAR_W, 0, CHAR_W, CHAR_H,   // src slice in sprite sheet
+        x   * CHAR_W, y * CHAR_H, CHAR_W, CHAR_H  // dest on output
+      );
     }
-    textRows.push(rowStr);
   }
 
-  lastTextFrame = textRows.join('\n');
+  // 5. Colorize
+  if (mode === 'color') {
+    // Build a cols×rows tint image (one pixel = avg color of that char's source block)
+    const tintCanvas = new OffscreenCanvas(cols, rows);
+    const tintCtx = tintCanvas.getContext('2d');
+    const tintData = tintCtx.createImageData(cols, rows);
+    for (let i = 0; i < cols * rows; i++) {
+      const si = i * 4;
+      tintData.data[si]   = data[si];
+      tintData.data[si+1] = data[si+1];
+      tintData.data[si+2] = data[si+2];
+      tintData.data[si+3] = 255;
+    }
+    tintCtx.putImageData(tintData, 0, 0);
+    // Scale tint up and multiply over the white chars
+    outCtx.globalCompositeOperation = 'multiply';
+    outCtx.drawImage(tintCanvas, 0, 0, cw, ch);
+    outCtx.globalCompositeOperation = 'source-over';
+  } else {
+    // Mono: tint with accent color via multiply
+    outCtx.globalCompositeOperation = 'multiply';
+    outCtx.fillStyle = '#c8ff00';
+    outCtx.fillRect(0, 0, cw, ch);
+    outCtx.globalCompositeOperation = 'source-over';
+  }
 
   document.getElementById('frame-info').textContent =
     `${cols}×${rows} chars | ${Math.floor(video.currentTime)}s`;
