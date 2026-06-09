@@ -1,794 +1,645 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIPHER - Mohamed</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        :root {
-            --metallic: #e8e8e8;
-            --dark: #0a0a0a;
-            --dark2: #111111;
-            --accent: #b8b8b8;
-            --neon: #00ffff;
-        }
-        
-        html { scroll-behavior: smooth; }
-        
-        body {
-            font-family: 'Courier New', monospace;
-            background: var(--dark);
-            color: var(--metallic);
-            overflow-x: hidden;
-            letter-spacing: 2px;
-        }
-        
-        #canvas-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            opacity: 0.3;
-        }
-        
-        .content {
-            position: relative;
-            z-index: 10;
-        }
-        
-        header {
-            background: rgba(10,10,10,0.8);
-            backdrop-filter: blur(20px);
-            padding: 2rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 2px solid rgba(232,232,232,0.1);
-        }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px; }
-        
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 900;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, #e8e8e8, #b8b8b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: glow 3s ease-in-out infinite;
-        }
-        
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 3rem;
-        }
-        
-        .nav-links a {
-            color: var(--metallic);
-            text-decoration: none;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            transition: all 0.3s;
-            position: relative;
-            letter-spacing: 1px;
-        }
-        
-        .nav-links a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--neon);
-            transition: width 0.3s;
-        }
-        
-        .nav-links a:hover::after { width: 100%; }
-        
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-content {
-            max-width: 800px;
-            animation: fadeInUp 1.2s ease-out;
-        }
-        
-        .hero h1 {
-            font-size: 5rem;
-            font-weight: 900;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            background: linear-gradient(90deg, #e8e8e8, #00ffff, #e8e8e8);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientShift 4s linear infinite;
-        }
-        
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--accent);
-            margin-bottom: 3rem;
-            line-height: 1.8;
-            animation: fadeInUp 1.2s ease-out 0.2s backwards;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            padding: 1.2rem 3rem;
-            background: rgba(232,232,232,0.1);
-            border: 2px solid var(--metallic);
-            color: var(--metallic);
-            text-decoration: none;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 2px;
-            transition: all 0.3s;
-            cursor: pointer;
-            animation: fadeInUp 1.2s ease-out 0.4s backwards;
-            font-family: 'Courier New', monospace;
-            margin: 0 1rem;
-        }
-        
-        .cta-button:hover {
-            background: var(--metallic);
-            color: var(--dark);
-            box-shadow: 0 0 30px rgba(232,232,232,0.5), 0 0 60px rgba(0,255,255,0.3);
-            transform: translateY(-5px);
-        }
-        
-        .cta-button.alt {
-            background: transparent;
-            border: 2px solid var(--neon);
-            color: var(--neon);
-        }
-        
-        .cta-button.alt:hover {
-            background: var(--neon);
-            color: var(--dark);
-            box-shadow: 0 0 30px rgba(0,255,255,0.7);
-        }
-        
-        .stats-section {
-            padding: 6rem 0;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-        
-        .stat-card {
-            background: rgba(232,232,232,0.05);
-            border: 2px solid rgba(232,232,232,0.1);
-            padding: 3rem 2rem;
-            text-align: center;
-            transition: all 0.3s;
-            backdrop-filter: blur(10px);
-            animation: slideInUp 0.8s ease-out forwards;
-        }
-        
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.3s; }
-        .stat-card:nth-child(3) { animation-delay: 0.5s; }
-        
-        .stat-card:hover {
-            background: rgba(0,255,255,0.05);
-            border-color: var(--neon);
-            transform: translateY(-10px);
-            box-shadow: 0 10px 40px rgba(0,255,255,0.2);
-        }
-        
-        .stat-number {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--neon);
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 1rem;
-            text-transform: uppercase;
-            color: var(--accent);
-            letter-spacing: 2px;
-        }
-        
-        .skills-section {
-            padding: 6rem 0;
-        }
-        
-        .section-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            margin-bottom: 4rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-            background: linear-gradient(90deg, #e8e8e8, #00ffff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .skill-box {
-            background: rgba(232,232,232,0.03);
-            border: 2px solid rgba(232,232,232,0.1);
-            padding: 2.5rem 1.5rem;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            animation: scaleIn 0.6s ease-out forwards;
-        }
-        
-        .skill-box:nth-child(1) { animation-delay: 0.0s; }
-        .skill-box:nth-child(2) { animation-delay: 0.1s; }
-        .skill-box:nth-child(3) { animation-delay: 0.2s; }
-        .skill-box:nth-child(4) { animation-delay: 0.3s; }
-        .skill-box:nth-child(5) { animation-delay: 0.4s; }
-        .skill-box:nth-child(6) { animation-delay: 0.5s; }
-        
-        .skill-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0,255,255,0.2), transparent);
-            transition: left 0.6s;
-        }
-        
-        .skill-box:hover::before { left: 100%; }
-        
-        .skill-box:hover {
-            background: rgba(0,255,255,0.1);
-            border-color: var(--neon);
-            transform: translateY(-15px) scale(1.05);
-            box-shadow: 0 15px 50px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.1);
-        }
-        
-        .skill-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .skill-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--neon);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .about-section {
-            padding: 6rem 0;
-            background: rgba(0,255,255,0.02);
-            border-top: 2px solid rgba(0,255,255,0.1);
-            border-bottom: 2px solid rgba(0,255,255,0.1);
-            margin: 4rem 0;
-        }
-        
-        .about-content {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-            animation: fadeInUp 1s ease-out;
-        }
-        
-        .about-content p {
-            font-size: 1.1rem;
-            color: var(--accent);
-            line-height: 2;
-            margin-bottom: 2rem;
-        }
-        
-        .about-content p span {
-            color: var(--neon);
-            font-weight: 700;
-        }
-        
-        .ascii-section {
-            padding: 6rem 0;
-        }
-        
-        .upload-area {
-            background: rgba(0,255,255,0.05);
-            border: 2px dashed var(--neon);
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 2rem;
-        }
-        
-        .upload-area:hover {
-            background: rgba(0,255,255,0.1);
-            box-shadow: 0 0 30px rgba(0,255,255,0.3);
-        }
-        
-        .upload-area p {
-            color: var(--accent);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-        
-        #imageFile {
-            display: none;
-        }
-        
-        .ascii-output {
-            background: var(--dark2);
-            border: 2px solid rgba(0,255,255,0.3);
-            padding: 2rem;
-            overflow: auto;
-            min-height: 400px;
-            margin: 2rem 0;
-            display: none;
-        }
-        
-        .ascii-output.active {
-            display: block;
-        }
-        
-        #asciiResult {
-            color: var(--neon);
-            font-size: 0.5rem;
-            line-height: 0.7;
-            white-space: pre;
-            font-family: 'Courier New', monospace;
-            letter-spacing: -1px;
-        }
-        
-        .ascii-controls {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .ascii-controls button {
-            padding: 0.8rem 2rem;
-            background: rgba(0,255,255,0.1);
-            border: 2px solid var(--neon);
-            color: var(--neon);
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .ascii-controls button:hover {
-            background: var(--neon);
-            color: var(--dark);
-            box-shadow: 0 0 20px rgba(0,255,255,0.5);
-        }
-        
-        .contact-section {
-            padding: 6rem 0;
-            text-align: center;
-        }
-        
-        .contact-buttons {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 2rem;
-        }
-        
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            border-top: 2px solid rgba(232,232,232,0.1);
-            color: var(--accent);
-            font-size: 0.9rem;
-            background: rgba(10,10,10,0.5);
-        }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(0,255,255,0.5); }
-            50% { text-shadow: 0 0 30px rgba(0,255,255,0.8); }
-        }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% center; }
-            100% { background-position: 200% center; }
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .nav-links { gap: 1rem; font-size: 0.7rem; }
-            .section-title { font-size: 2rem; }
-            .container { padding: 0 20px; }
-            #asciiResult { font-size: 0.35rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII.VIDEO</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #080808;
+    --surface: #0f0f0f;
+    --border: #1e1e1e;
+    --accent: #c8ff00;
+    --accent2: #00ffc8;
+    --text: #e0e0e0;
+    --muted: #555;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(8,8,8,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--muted); }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* MAIN LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    padding: 60px 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    background: var(--surface);
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(200,255,0,0.03);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-family: var(--mono);
+    font-size: 40px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .upload-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .upload-sub {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  /* CONTROLS BAR */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.active { border-color: var(--accent); color: var(--accent); background: rgba(200,255,0,0.08); }
+  .btn.primary { border-color: var(--accent); color: var(--bg); background: var(--accent); font-weight: 700; }
+  .btn.primary:hover { background: #d4ff1a; }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .mode-toggle .btn {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .mode-toggle .btn:last-child { border-right: none; }
+
+  .separator {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  /* SLIDER */
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 80px;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* ASCII OUTPUT */
+  .output-wrap {
+    position: relative;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 200px;
+  }
+
+  #ascii-output {
+    font-family: var(--mono);
+    font-size: 7px;
+    line-height: 1.1;
+    white-space: pre;
+    display: block;
+    padding: 8px;
+    color: var(--accent);
+    width: 100%;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #ascii-output.colored span {
+    /* colored spans injected by JS */
+  }
+
+  /* Hidden elements */
+  #hidden-video {
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+    width: 320px;
+    height: 240px;
+  }
+
+  #hidden-canvas {
+    display: none;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .status-dot.active { background: var(--accent); animation: pulse 1s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* HERO TEXT (shown before upload) */
+  .hero {
+    text-align: center;
+    padding: 20px 0 40px;
+  }
+
+  .hero-title {
+    font-family: var(--mono);
+    font-size: clamp(32px, 6vw, 72px);
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .hero-title em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: var(--mono);
+    letter-spacing: 2px;
+  }
+
+  /* EXPORT */
+  .export-bar {
+    display: flex;
+    gap: 10px;
+    padding-top: 12px;
+  }
+
+  /* PROGRESS */
+  .progress-wrap {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    margin: 8px 0;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header { padding: 14px 16px; }
+    .container { padding: 20px 12px; }
+    #ascii-output { font-size: 5px; }
+    .controls { gap: 8px; }
+    .btn { padding: 8px 12px; font-size: 11px; }
+  }
+
+  /* HIDE WHEN NO VIDEO */
+  .player-section { display: none; }
+  .player-section.visible { display: block; }
+</style>
 </head>
 <body>
-    <canvas id="canvas-bg"></canvas>
-    
-    <div class="content">
-        <header>
-            <div class="container">
-                <nav>
-                    <div class="logo">CIPHER</div>
-                    <ul class="nav-links">
-                        <li><a href="#skills">Skills</a></li>
-                        <li><a href="#ascii">ASCII Art</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </header>
 
-        <section class="hero">
-            <div class="hero-content">
-                <h1>MOHAMED</h1>
-                <p>Web Developer | Video Editor | Creative Technologist</p>
-                <p style="color: var(--neon); font-size: 0.9rem; margin-bottom: 2rem;">DISCIPLINE > MOTIVATION</p>
-                <a href="#ascii" class="cta-button">Try ASCII Art</a>
-                <a href="https://instagram.com/gazout1" class="cta-button alt">Follow</a>
-            </div>
-        </section>
+<header>
+  <div class="logo">ASCII<span>.</span>VIDEO</div>
+  <div class="header-tag">CLIENT-SIDE // NO UPLOAD</div>
+</header>
 
-        <section class="stats-section">
-            <div class="container">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">20+</div>
-                        <div class="stat-label">Projects Built</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">Obsession Level</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">∞</div>
-                        <div class="stat-label">Creativity</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<div class="container">
 
-        <section class="skills-section" id="skills">
-            <div class="container">
-                <h2 class="section-title">Arsenal</h2>
-                <div class="skills-grid">
-                    <div class="skill-box">
-                        <div class="skill-icon">⚡</div>
-                        <div class="skill-name">JavaScript</div>
-                    </div>
-                    <div class="skill-box">
-                        <div class="skill-icon">🖼️</div>
-                        <div class="skill-name">HTML5</div>
-                    </div>
-                    <div class="skill-box">
-                        <div class="skill-icon">🎨</div>
-                        <div class="skill-name">CSS3</div>
-                    </div>
-                    <div class="skill-box">
-                        <div class="skill-icon">🎬</div>
-                        <div class="skill-name">DaVinci</div>
-                    </div>
-                    <div class="skill-box">
-                        <div class="skill-icon">🐙</div>
-                        <div class="skill-name">GitHub</div>
-                    </div>
-                    <div class="skill-box">
-                        <div class="skill-icon">🔧</div>
-                        <div class="skill-name">Problem Solving</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+  <div class="hero" id="hero-section">
+    <div class="hero-title">CONVERT VIDEO<br>TO <em>ASCII</em></div>
+    <div class="hero-sub">// CLASSIC &amp; COLORED // RUNS IN BROWSER //</div>
+  </div>
 
-        <section class="ascii-section" id="ascii">
-            <div class="container">
-                <h2 class="section-title">ASCII Art <span>Generator</span></h2>
-                
-                <div class="upload-area" id="uploadArea">
-                    <p>📤 DRAG & DROP YOUR IMAGE OR CLICK TO UPLOAD</p>
-                    <p style="font-size: 0.9rem; color: var(--neon);">JPG, PNG, GIF - Any Size</p>
-                </div>
-                
-                <input type="file" id="imageFile" accept="image/*">
-                
-                <div class="ascii-output" id="asciiOutput">
-                    <pre id="asciiResult"></pre>
-                </div>
-                
-                <div class="ascii-controls" id="asciiControls" style="display: none;">
-                    <button id="downloadBtn">⬇ DOWNLOAD ASCII</button>
-                    <button id="copyBtn">📋 COPY ASCII</button>
-                    <button id="resetBtn">🔄 RESET</button>
-                </div>
-            </div>
-        </section>
+  <!-- UPLOAD -->
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="file-input" accept="video/*">
+    <span class="upload-icon">▶</span>
+    <div class="upload-title">Drop a video here</div>
+    <div class="upload-sub">MP4, WEBM, MOV — processed locally, never uploaded</div>
+  </div>
 
-        <section class="about-section">
-            <div class="container about-content">
-                <h2 class="section-title">Philosophy</h2>
-                <p><span>DISCIPLINE</span> over motivation. <span>EXECUTION</span> over talking. <span>OBSESSION</span> with quality.</p>
-                <p>Creative technologist pushing boundaries. Every pixel counts.</p>
-                <p>No shortcuts. No excuses. <span>Just work.</span></p>
-            </div>
-        </section>
+  <!-- PLAYER SECTION -->
+  <div class="player-section" id="player-section">
 
-        <section class="contact-section" id="contact">
-            <div class="container">
-                <h2 class="section-title">Let's Build</h2>
-                <p style="color: var(--accent); font-size: 1.1rem; margin-top: 1rem;">Ready for a project? Let's talk.</p>
-                <div class="contact-buttons">
-                    <a href="https://wa.me/32484837438" class="cta-button">WhatsApp</a>
-                    <a href="https://instagram.com/gazout1" class="cta-button alt">Instagram</a>
-                </div>
-            </div>
-        </section>
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button class="btn primary" id="play-btn">▶ PLAY</button>
+      <button class="btn" id="stop-btn">■ STOP</button>
 
-        <footer>
-            <p>&copy; 2025 CIPHER. All rights reserved. Built with obsession.</p>
-        </footer>
+      <div class="separator"></div>
+
+      <div class="mode-toggle">
+        <button class="btn active" id="mode-mono" onclick="setMode('mono')">MONO</button>
+        <button class="btn" id="mode-color" onclick="setMode('color')">COLOR</button>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="slider-wrap">
+        DETAIL
+        <input type="range" id="detail-slider" min="40" max="200" value="100">
+        <span id="detail-val">100</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="slider-wrap">
+        FPS
+        <input type="range" id="fps-slider" min="5" max="30" value="15">
+        <span id="fps-val">15</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <button class="btn" id="change-video-btn">↑ NEW VIDEO</button>
     </div>
 
-    <script>
-        // Background Canvas
-        const canvasBg = document.getElementById('canvas-bg');
-        const ctxBg = canvasBg.getContext('2d');
-        
-        canvasBg.width = window.innerWidth;
-        canvasBg.height = window.innerHeight;
-        
-        let timeBg = 0;
-        
-        function drawBackground() {
-            const gradient = ctxBg.createLinearGradient(0, 0, canvasBg.width, canvasBg.height);
-            gradient.addColorStop(0, '#0a0a0a');
-            gradient.addColorStop(0.5, '#111111');
-            gradient.addColorStop(1, '#0a0a0a');
-            
-            ctxBg.fillStyle = gradient;
-            ctxBg.fillRect(0, 0, canvasBg.width, canvasBg.height);
-            
-            timeBg += 0.01;
-            
-            ctxBg.strokeStyle = 'rgba(232, 232, 232, 0.1)';
-            ctxBg.lineWidth = 2;
-            
-            for (let i = 0; i < 8; i++) {
-                ctxBg.save();
-                ctxBg.translate(canvasBg.width / 2, canvasBg.height / 2);
-                ctxBg.rotate((timeBg + i * Math.PI / 4));
-                ctxBg.beginPath();
-                ctxBg.moveTo(0, 0);
-                ctxBg.lineTo(0, 300 + Math.sin(timeBg) * 50);
-                ctxBg.stroke();
-                ctxBg.restore();
-            }
-            
-            ctxBg.fillStyle = 'rgba(0, 255, 255, 0.3)';
-            for (let i = 0; i < 50; i++) {
-                const x = (Math.sin(timeBg * 0.5 + i) * canvasBg.width / 2) + canvasBg.width / 2;
-                const y = (Math.cos(timeBg * 0.7 + i) * canvasBg.height / 2) + canvasBg.height / 2;
-                const size = 2 + Math.sin(timeBg + i) * 1;
-                ctxBg.fillRect(x, y, size, size);
-            }
-            
-            ctxBg.strokeStyle = 'rgba(232, 232, 232, 0.03)';
-            ctxBg.lineWidth = 1;
-            const gridSize = 50;
-            
-            for (let x = 0; x < canvasBg.width; x += gridSize) {
-                ctxBg.beginPath();
-                ctxBg.moveTo(x + Math.sin(timeBg * 0.5) * 10, 0);
-                ctxBg.lineTo(x + Math.sin(timeBg * 0.5) * 10, canvasBg.height);
-                ctxBg.stroke();
-            }
-            
-            for (let y = 0; y < canvasBg.height; y += gridSize) {
-                ctxBg.beginPath();
-                ctxBg.moveTo(0, y + Math.cos(timeBg * 0.5) * 10);
-                ctxBg.lineTo(canvasBg.width, y + Math.cos(timeBg * 0.5) * 10);
-                ctxBg.stroke();
-            }
-            
-            requestAnimationFrame(drawBackground);
-        }
-        
-        drawBackground();
-        
-        // ASCII Art Generator
-        const uploadArea = document.getElementById('uploadArea');
-        const imageFile = document.getElementById('imageFile');
-        const asciiOutput = document.getElementById('asciiOutput');
-        const asciiResult = document.getElementById('asciiResult');
-        const asciiControls = document.getElementById('asciiControls');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        
-        const asciiChars = ['@', '#', 'S', '%', '?', '*', '+', ';', ':', ',', '.'];
-        const colors = ['#ff0000', '#ff6600', '#ffff00', '#00ff00', '#00ffff', '#0088ff', '#0000ff', '#ff00ff'];
-        
-        uploadArea.addEventListener('click', () => imageFile.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.style.background = 'rgba(0,255,255,0.2)';
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.background = 'rgba(0,255,255,0.05)';
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.background = 'rgba(0,255,255,0.05)';
-            if (e.dataTransfer.files.length > 0) {
-                handleImageUpload(e.dataTransfer.files[0]);
-            }
-        });
-        
-        imageFile.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleImageUpload(e.target.files[0]);
-            }
-        });
-        
-        function handleImageUpload(file) {
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                const img = new Image();
-                
-                img.onload = () => {
-                    convertImageToASCII(img);
-                    uploadArea.innerHTML = '✅ IMAGE LOADED';
-                    uploadArea.style.background = 'rgba(0,255,255,0.05)';
-                    asciiOutput.classList.add('active');
-                    asciiControls.style.display = 'flex';
-                };
-                
-                img.src = e.target.result;
-            };
-            
-            reader.readAsDataURL(file);
-        }
-        
-        function convertImageToASCII(img) {
-            const canvas = document.createElement('canvas');
-            const width = 100;
-            const height = 50;
-            
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const data = imageData.data;
-            
-            let asciiArt = '';
-            
-            for (let i = 0; i < height; i++) {
-                for (let j = 0; j < width; j++) {
-                    const index = (i * width + j) * 4;
-                    const r = data[index];
-                    const g = data[index + 1];
-                    const b = data[index + 2];
-                    
-                    const brightness = (r + g + b) / 3;
-                    
-                    const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1));
-                    const colorIndex = Math.floor((brightness / 255) * (colors.length - 1));
-                    
-                    const char = asciiChars[charIndex];
-                    const color = colors[colorIndex];
-                    
-                    asciiArt += `<span style="color: ${color}">${char}</span>`;
-                }
-                asciiArt += '\n';
-            }
-            
-            asciiResult.innerHTML = asciiArt;
-        }
-        
-        downloadBtn.addEventListener('click', () => {
-            const text = asciiResult.innerText;
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', 'ascii-art.txt');
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-        });
-        
-        copyBtn.addEventListener('click', () => {
-            const text = asciiResult.innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                copyBtn.textContent = '✅ COPIED!';
-                setTimeout(() => {
-                    copyBtn.textContent = '📋 COPY ASCII';
-                }, 2000);
-            });
-        });
-        
-        resetBtn.addEventListener('click', () => {
-            asciiResult.innerHTML = '';
-            asciiOutput.classList.remove('active');
-            asciiControls.style.display = 'none';
-            uploadArea.innerHTML = '📤 DRAG & DROP YOUR IMAGE OR CLICK TO UPLOAD<p style="font-size: 0.9rem; color: var(--neon);">JPG, PNG, GIF - Any Size</p>';
-            imageFile.value = '';
-        });
-        
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
-        
-        window.addEventListener('resize', () => {
-            canvasBg.width = window.innerWidth;
-            canvasBg.height = window.innerHeight;
-        });
-    </script>
+    <!-- PROGRESS -->
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="output-wrap">
+      <pre id="ascii-output">Waiting...</pre>
+      <div class="status-bar">
+        <div>
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">IDLE</span>
+        </div>
+        <div id="frame-info">—</div>
+      </div>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="export-bar">
+      <button class="btn" id="export-frame-btn">⬇ EXPORT FRAME (TXT)</button>
+      <button class="btn" id="copy-frame-btn">⎘ COPY FRAME</button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- HIDDEN PROCESSING ELEMENTS -->
+<video id="hidden-video" muted playsinline></video>
+<canvas id="hidden-canvas"></canvas>
+
+<script>
+// ─── ASCII CHARS (dark to light density) ───────────────────────────────────
+const CHARS_DENSE = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/*tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
+const CHARS_SIMPLE = ' .:-=+*#%@';
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let mode = 'mono';         // 'mono' | 'color'
+let isPlaying = false;
+let animFrame = null;
+let lastFrameTime = 0;
+let targetFPS = 15;
+let asciiWidth = 100;
+
+const video = document.getElementById('hidden-video');
+const canvas = document.getElementById('hidden-canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const output = document.getElementById('ascii-output');
+
+// ─── UPLOAD ─────────────────────────────────────────────────────────────────
+const fileInput = document.getElementById('file-input');
+const uploadZone = document.getElementById('upload-zone');
+
+uploadZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadZone.classList.add('drag-over');
+});
+
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('video/')) loadVideo(file);
+});
+
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) loadVideo(e.target.files[0]);
+});
+
+document.getElementById('change-video-btn').addEventListener('click', () => {
+  stopPlayback();
+  document.getElementById('player-section').classList.remove('visible');
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('hero-section').style.display = 'block';
+  fileInput.value = '';
+});
+
+function loadVideo(file) {
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  video.load();
+  video.addEventListener('loadedmetadata', () => {
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('hero-section').style.display = 'none';
+    document.getElementById('player-section').classList.add('visible');
+    setStatus('READY', false);
+    renderFrame(); // show first frame
+  }, { once: true });
+}
+
+// ─── PLAYBACK ────────────────────────────────────────────────────────────────
+document.getElementById('play-btn').addEventListener('click', () => {
+  if (isPlaying) pausePlayback();
+  else startPlayback();
+});
+
+document.getElementById('stop-btn').addEventListener('click', stopPlayback);
+
+function startPlayback() {
+  isPlaying = true;
+  video.play();
+  document.getElementById('play-btn').textContent = '⏸ PAUSE';
+  setStatus('PLAYING', true);
+  loop(0);
+}
+
+function pausePlayback() {
+  isPlaying = false;
+  video.pause();
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('PAUSED', false);
+  if (animFrame) cancelAnimationFrame(animFrame);
+}
+
+function stopPlayback() {
+  isPlaying = false;
+  video.pause();
+  video.currentTime = 0;
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('STOPPED', false);
+  if (animFrame) cancelAnimationFrame(animFrame);
+  renderFrame();
+}
+
+function loop(timestamp) {
+  if (!isPlaying) return;
+  const interval = 1000 / targetFPS;
+  if (timestamp - lastFrameTime >= interval) {
+    renderFrame();
+    lastFrameTime = timestamp;
+    updateProgress();
+  }
+  animFrame = requestAnimationFrame(loop);
+}
+
+video.addEventListener('ended', () => {
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  setStatus('ENDED', false);
+});
+
+// ─── RENDER FRAME ────────────────────────────────────────────────────────────
+function renderFrame() {
+  const w = asciiWidth;
+  const aspect = video.videoHeight / video.videoWidth;
+  const h = Math.floor(w * aspect * 0.45); // chars are taller than wide
+
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(video, 0, 0, w, h);
+
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
+  if (mode === 'mono') {
+    renderMono(data, w, h);
+  } else {
+    renderColor(data, w, h);
+  }
+
+  document.getElementById('frame-info').textContent =
+    `${w}×${h} chars | ${Math.floor(video.currentTime)}s`;
+}
+
+function pixelToChar(r, g, b) {
+  const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const index = Math.floor(brightness * (CHARS_DENSE.length - 1));
+  return CHARS_DENSE[index];
+}
+
+function renderMono(data, w, h) {
+  output.className = '';
+  let result = '';
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      result += pixelToChar(data[i], data[i+1], data[i+2]);
+    }
+    result += '\n';
+  }
+  output.textContent = result;
+}
+
+function renderColor(data, w, h) {
+  output.className = 'colored';
+  const frag = document.createDocumentFragment();
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const r = data[i], g = data[i+1], b = data[i+2];
+      const char = pixelToChar(r, g, b);
+      const span = document.createElement('span');
+      span.style.color = `rgb(${r},${g},${b})`;
+      span.textContent = char;
+      frag.appendChild(span);
+    }
+    frag.appendChild(document.createTextNode('\n'));
+  }
+  output.innerHTML = '';
+  output.appendChild(frag);
+}
+
+// ─── MODE TOGGLE ─────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('mode-mono').classList.toggle('active', m === 'mono');
+  document.getElementById('mode-color').classList.toggle('active', m === 'color');
+  if (!isPlaying) renderFrame();
+}
+
+// ─── SLIDERS ─────────────────────────────────────────────────────────────────
+document.getElementById('detail-slider').addEventListener('input', function() {
+  asciiWidth = parseInt(this.value);
+  document.getElementById('detail-val').textContent = this.value;
+  if (!isPlaying) renderFrame();
+});
+
+document.getElementById('fps-slider').addEventListener('input', function() {
+  targetFPS = parseInt(this.value);
+  document.getElementById('fps-val').textContent = this.value;
+});
+
+// ─── PROGRESS ────────────────────────────────────────────────────────────────
+function updateProgress() {
+  if (!video.duration) return;
+  const pct = (video.currentTime / video.duration) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ─── STATUS ──────────────────────────────────────────────────────────────────
+function setStatus(text, active) {
+  document.getElementById('status-text').textContent = text;
+  document.getElementById('status-dot').classList.toggle('active', active);
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+document.getElementById('export-frame-btn').addEventListener('click', () => {
+  const text = output.innerText || output.textContent;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ascii-frame.txt';
+  a.click();
+});
+
+document.getElementById('copy-frame-btn').addEventListener('click', () => {
+  const text = output.innerText || output.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-frame-btn');
+    btn.textContent = '✓ COPIED';
+    setTimeout(() => btn.textContent = '⎘ COPY FRAME', 1500);
+  });
+});
+</script>
 </body>
 </html>
+
