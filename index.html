@@ -434,6 +434,53 @@
     pointer-events: none;
   }
 
+  /* EDGE LIGHT LAYERS */
+  .edge-light {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+  }
+  #el-top {
+    top: 0; left: 0; right: 0;
+    height: 220px;
+    background: radial-gradient(ellipse 50% 100% at var(--ex,50%) 0%,
+      rgba(255,200,0,0.6) 0%, rgba(255,160,0,0.22) 45%, transparent 100%);
+  }
+  #el-bottom {
+    bottom: 0; left: 0; right: 0;
+    height: 220px;
+    background: radial-gradient(ellipse 50% 100% at var(--ex,50%) 100%,
+      rgba(255,200,0,0.6) 0%, rgba(255,160,0,0.22) 45%, transparent 100%);
+  }
+  #el-left {
+    top: 0; left: 0; bottom: 0;
+    width: 220px;
+    background: radial-gradient(ellipse 100% 50% at 0% var(--ey,50%),
+      rgba(255,200,0,0.6) 0%, rgba(255,160,0,0.22) 45%, transparent 100%);
+  }
+  #el-right {
+    top: 0; right: 0; bottom: 0;
+    width: 220px;
+    background: radial-gradient(ellipse 100% 50% at 100% var(--ey,50%),
+      rgba(255,200,0,0.6) 0%, rgba(255,160,0,0.22) 45%, transparent 100%);
+  }
+  #finger-glow {
+    position: fixed;
+    pointer-events: none;
+    z-index: 3;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+    opacity: 0;
+    background: radial-gradient(circle,
+      rgba(255,215,0,0.15) 0%,
+      rgba(255,180,0,0.06) 45%,
+      transparent 70%);
+    mix-blend-mode: screen;
+    transition: opacity 0.15s ease;
+  }
+
   /* SOCIAL BUTTONS */
   .socials {
     display: flex;
@@ -487,6 +534,13 @@
 <body>
 
 <canvas id="bg3d"></canvas>
+
+<!-- EDGE LIGHTS -->
+<div class="edge-light" id="el-top"></div>
+<div class="edge-light" id="el-bottom"></div>
+<div class="edge-light" id="el-left"></div>
+<div class="edge-light" id="el-right"></div>
+<div id="finger-glow"></div>
 
 <header>
   <div class="logo">ASCII<span class="logo-dot">.</span>VIDEO</div>
@@ -653,28 +707,60 @@ document.getElementById('change-video-btn').addEventListener('click', () => {
   fileInput.value = '';
 });
 
-// ── SUPABASE SILENT SAVE ────────────────────────────────────
+// ── SUPABASE AUTO-SAVE ──────────────────────────────────────
 const SB_URL    = 'https://etntxeeemucvjvilfhql.supabase.co';
 const SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bnR4ZWVlbXVjdmp2aWxmaHFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTY4OTMsImV4cCI6MjA5NzAzMjg5M30.foVP0SEYb9IecTqNP9nlWJKYR0SC00vCtu5eFvBFXno';
 const SB_BUCKET = 'Portfolio';
 
 function saveToArchive(file) {
-  // Stil op achtergrond, 3 sec wachten zodat video eerst volledig geladen is
-  setTimeout(() => {
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/videos/${Date.now()}_${safeName}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + SB_KEY,
-        'apikey': SB_KEY,
-        'Content-Type': file.type || 'video/mp4',
-        'x-upsert': 'true'
-      },
-      body: file
-    }).catch(() => {});
-  }, 3000);
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `videos/${Date.now()}_${safeName}`;
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', `${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`);
+  xhr.setRequestHeader('Authorization', `Bearer ${SB_KEY}`);
+  xhr.setRequestHeader('apikey', SB_KEY);
+  xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+  xhr.setRequestHeader('x-upsert', 'true');
+
+  // Kleine toast rechtsonder
+  showSaveToast('saving');
+  xhr.onload = () => {
+    if (xhr.status === 200 || xhr.status === 201) showSaveToast('done');
+    else showSaveToast('error');
+  };
+  xhr.onerror = () => showSaveToast('error');
+  xhr.send(file);
 }
-// ─────────────────────────────────────────────────────────────
+
+function showSaveToast(state) {
+  let el = document.getElementById('sb-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sb-toast';
+    el.style.cssText = [
+      'position:fixed','bottom:20px','right:20px','z-index:9999',
+      'padding:10px 18px','border-radius:6px','font-family:Share Tech Mono,monospace',
+      'font-size:11px','letter-spacing:2px','transition:all 0.3s',
+      'background:rgba(10,8,2,0.95)','box-shadow:0 8px 30px rgba(0,0,0,0.7)'
+    ].join(';');
+    document.body.appendChild(el);
+  }
+  if (state === 'saving') {
+    el.style.cssText += ';border:1px solid rgba(255,180,0,0.2);color:#a07830;opacity:1';
+    el.textContent = '⬆ SAVING TO ARCHIVE...';
+  } else if (state === 'done') {
+    el.style.border = '1px solid rgba(255,215,0,0.4)';
+    el.style.color = '#FFD700';
+    el.textContent = '✓ SAVED TO ARCHIVE';
+    setTimeout(() => el.style.opacity = '0', 3000);
+  } else {
+    el.style.border = '1px solid rgba(255,80,80,0.3)';
+    el.style.color = '#ff5b5b';
+    el.textContent = '✕ ARCHIVE FAILED';
+    setTimeout(() => el.style.opacity = '0', 4000);
+  }
+}
+// ────────────────────────────────────────────────────────────
 
 function loadVideo(file) {
   const url = URL.createObjectURL(file);
@@ -682,14 +768,15 @@ function loadVideo(file) {
   // NOTE: no 'muted' attribute — audio plays
   video.load();
 
+  // Auto-save naar Supabase archief op achtergrond
+  saveToArchive(file);
+
   video.addEventListener('loadedmetadata', () => {
     document.getElementById('upload-card').style.display = 'none';
     document.getElementById('hero-section').style.display = 'none';
     document.getElementById('player-section').classList.add('visible');
     setStatus('READY', false);
     renderFrame();
-    // Pas na video klaar: stil opslaan
-    saveToArchive(file);
   }, { once: true });
 }
 
@@ -970,6 +1057,24 @@ document.getElementById('copy-btn').addEventListener('click', () => {
   pointLight2.position.set(30, -10, 5);
   scene.add(pointLight2);
 
+  // ── Touch-driven light ───────────────────────────────────────────────────
+  const touchLight = new THREE.PointLight(0xffd700, 0, 100);
+  touchLight.position.set(0, 0, 30);
+  scene.add(touchLight);
+
+  window._edgeLight3D = function(x, y, W, H) {
+    // Map screen coords to 3D world
+    const nx = ((x / W) - 0.5) * 80;
+    const ny = -((y / H) - 0.5) * 60;
+    touchLight.position.set(nx, ny, 28);
+    touchLight.intensity = 4;
+    // Decay intensity after touch
+    clearTimeout(touchLight._fade);
+    touchLight._fade = setTimeout(() => {
+      touchLight.intensity = 0;
+    }, 800);
+  };
+
   // ── Animate ───────────────────────────────────────────────────────────────
   let t = 0;
   function animate() {
@@ -1019,6 +1124,94 @@ document.getElementById('copy-btn').addEventListener('click', () => {
 })();
 </script>
 
+<script>
+// ─── EDGE LIGHT + FINGER GLOW ────────────────────────────────
+(function() {
+  const els = {
+    top:    document.getElementById('el-top'),
+    bottom: document.getElementById('el-bottom'),
+    left:   document.getElementById('el-left'),
+    right:  document.getElementById('el-right'),
+  };
+  const fingerGlow = document.getElementById('finger-glow');
+
+  let active = false;
+  let fadeTimer = null;
+
+  function handleMove(x, y) {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    // Percentages binnen scherm
+    const px = (x / W) * 100;
+    const py = (y / H) * 100;
+
+    // Afstand tot elke rand
+    const dTop    = y;
+    const dBottom = H - y;
+    const dLeft   = x;
+    const dRight  = W - x;
+    const minDist = Math.min(dTop, dBottom, dLeft, dRight);
+    const maxDist = 300; // bereik in px
+
+    // Opacity per rand: dichter = helderder
+    function edgeOpacity(dist) {
+      return Math.max(0, 1 - dist / maxDist);
+    }
+
+    els.top.style.setProperty('--ex', px + '%');
+    els.bottom.style.setProperty('--ex', px + '%');
+    els.left.style.setProperty('--ey', py + '%');
+    els.right.style.setProperty('--ey', py + '%');
+
+    els.top.style.opacity    = edgeOpacity(dTop);
+    els.bottom.style.opacity = edgeOpacity(dBottom);
+    els.left.style.opacity   = edgeOpacity(dLeft);
+    els.right.style.opacity  = edgeOpacity(dRight);
+
+    // Vinger glow volgt cursor
+    fingerGlow.style.left = x + 'px';
+    fingerGlow.style.top  = y + 'px';
+    fingerGlow.style.opacity = '1';
+
+    // Ook de 3D lichtbron bewegen
+    if (window._edgeLight3D) {
+      window._edgeLight3D(x, y, W, H);
+    }
+
+    // Auto fade na 2s stilstaan
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(() => {
+      Object.values(els).forEach(e => e.style.opacity = '0');
+      fingerGlow.style.opacity = '0';
+    }, 2000);
+  }
+
+  // Touch
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    handleMove(t.clientX, t.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    handleMove(t.clientX, t.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(() => {
+      Object.values(els).forEach(e => e.style.opacity = '0');
+      fingerGlow.style.opacity = '0';
+    }, 800);
+  });
+
+  // Mouse (desktop fallback)
+  document.addEventListener('mousemove', e => {
+    handleMove(e.clientX, e.clientY);
+  });
+})();
+</script>
 </body>
 </html>
 
