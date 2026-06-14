@@ -1106,8 +1106,6 @@ document.getElementById('copy-btn').addEventListener('click', () => {
 
 
 
-
-
 <script>
 // ── MERCEDES AMBIENT SPOTLIGHTS ──────────────────────────────
 (function () {
@@ -1139,12 +1137,12 @@ document.getElementById('copy-btn').addEventListener('click', () => {
   document.addEventListener('touchstart', e => onMove(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
   document.addEventListener('touchend', () => {
     clearTimeout(fadeTimer);
-    fadeTimer = setTimeout(() => { isActive = false; }, 800);
+    // Snellere timeout wanneer de touch stopt
+    fadeTimer = setTimeout(() => { isActive = false; }, 200);
   });
   document.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
 
   // Genereer spotlight posities langs randen
-  // Links: 10 spots, Rechts: 10 spots, Boven: 5 spots, Onder: 5 spots
   function buildSpots() {
     const spots = [];
 
@@ -1177,54 +1175,57 @@ document.getElementById('copy-btn').addEventListener('click', () => {
     const dist = Math.sqrt(dx*dx + dy*dy) || 1;
     const angle = Math.atan2(dy, dx);
 
-    // Beam breedte — smal zoals mercedes light
-    const beamW = 10 + 20 * intensity;
+    // VEEEL BREDER gemaakt voor een waziger, minder 'streep' effect
+    const beamW = 60 + 120 * intensity;
     const nx = Math.cos(angle + Math.PI/2);
     const ny = Math.sin(angle + Math.PI/2);
 
-    // Beam gradient: helder bij bron, vervaagt naar vinger
+    // Beam gradient: veel sneller vervagen naar transparant voor een diffuse look
     const grad = ctx.createLinearGradient(sx, sy, tx, ty);
-    grad.addColorStop(0,   `rgba(255,255,255,${0.85 * intensity})`);
-    grad.addColorStop(0.15,`rgba(255,255,255,${0.5  * intensity})`);
-    grad.addColorStop(0.5, `rgba(220,230,255,${0.15 * intensity})`);
-    grad.addColorStop(1,   'rgba(255,255,255,0)');
+    grad.addColorStop(0,   `rgba(255,255,255,${0.4 * intensity})`);
+    grad.addColorStop(0.1, `rgba(240,245,255,${0.15 * intensity})`);
+    grad.addColorStop(0.3, `rgba(220,230,255,${0.03 * intensity})`);
+    grad.addColorStop(0.6, 'rgba(255,255,255,0)');
 
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
 
+    // Filter toegevoegd voor extra wazigheid
+    ctx.filter = 'blur(12px)';
+
     // Beam shape
     ctx.beginPath();
-    ctx.moveTo(sx + nx * 2,  sy + ny * 2);
-    ctx.lineTo(sx - nx * 2,  sy - ny * 2);
+    ctx.moveTo(sx + nx * 5,  sy + ny * 5);
+    ctx.lineTo(sx - nx * 5,  sy - ny * 5);
     ctx.lineTo(tx - nx * beamW, ty - ny * beamW);
     ctx.lineTo(tx + nx * beamW, ty + ny * beamW);
     ctx.closePath();
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Kern beam (scherpere witte lijn)
+    // Kern beam extreem zacht gemaakt zodat de harde lijn verdwijnt
     const coreGrad = ctx.createLinearGradient(sx, sy, tx, ty);
-    coreGrad.addColorStop(0,    `rgba(255,255,255,${0.95 * intensity})`);
-    coreGrad.addColorStop(0.3,  `rgba(255,255,255,${0.4  * intensity})`);
-    coreGrad.addColorStop(1,    'rgba(255,255,255,0)');
+    coreGrad.addColorStop(0,    `rgba(255,255,255,${0.3 * intensity})`);
+    coreGrad.addColorStop(0.2,  `rgba(255,255,255,${0.05 * intensity})`);
+    coreGrad.addColorStop(0.5,    'rgba(255,255,255,0)');
 
     ctx.beginPath();
-    ctx.moveTo(sx + nx * 1.5, sy + ny * 1.5);
-    ctx.lineTo(sx - nx * 1.5, sy - ny * 1.5);
-    ctx.lineTo(tx - nx * 3,   ty - ny * 3);
-    ctx.lineTo(tx + nx * 3,   ty + ny * 3);
+    ctx.moveTo(sx + nx * 2, sy + ny * 2);
+    ctx.lineTo(sx - nx * 2, sy - ny * 2);
+    ctx.lineTo(tx - nx * (beamW * 0.3), ty - ny * (beamW * 0.3));
+    ctx.lineTo(tx + nx * (beamW * 0.3), ty + ny * (beamW * 0.3));
     ctx.closePath();
     ctx.fillStyle = coreGrad;
     ctx.fill();
 
-    // Lens gloed op de rand (lamp effect)
-    const lensR = 8 + 12 * intensity;
-    const lensGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, lensR * 3);
-    lensGrad.addColorStop(0,   `rgba(255,255,255,${intensity})`);
-    lensGrad.addColorStop(0.3, `rgba(200,220,255,${0.4 * intensity})`);
+    // Lens gloed op de rand (lamp effect) - ook waziger gemaakt
+    const lensR = 15 + 25 * intensity;
+    const lensGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, lensR * 2.5);
+    lensGrad.addColorStop(0,   `rgba(255,255,255,${0.6 * intensity})`);
+    lensGrad.addColorStop(0.4, `rgba(200,220,255,${0.1 * intensity})`);
     lensGrad.addColorStop(1,   'rgba(0,0,0,0)');
     ctx.beginPath();
-    ctx.arc(sx, sy, lensR * 3, 0, Math.PI * 2);
+    ctx.arc(sx, sy, lensR * 2.5, 0, Math.PI * 2);
     ctx.fillStyle = lensGrad;
     ctx.fill();
 
@@ -1242,22 +1243,20 @@ document.getElementById('copy-btn').addEventListener('click', () => {
   let spots = buildSpots();
   window.addEventListener('resize', () => { resize(); spots = buildSpots(); });
 
-  let globalFade = 0; // 0=uit, 1=aan
+  let globalFade = 0; 
 
   function render() {
     ctx.clearRect(0, 0, W, H);
 
-    // Smooth fade in/out
+    // Verhoogd van 0.08 naar 0.22 voor een veel snellere fade-out
     const target = isActive ? 1 : 0;
-    globalFade += (target - globalFade) * 0.08;
+    globalFade += (target - globalFade) * 0.22;
 
     if (globalFade > 0.01) {
       const maxDist = Math.sqrt(W*W + H*H) * 0.65;
 
       spots.forEach(s => {
         const raw = spotIntensity(s.x, s.y, fx, fy, maxDist);
-        // Alleen spots die dicht genoeg bij de vinger-richting zitten activeren
-        // Gebruik dot product: spot moet in richting vinger vanuit rand kijken
         let dirOk = true;
         if (s.side === 'left'   && fx < W * 0.15) dirOk = false;
         if (s.side === 'right'  && fx > W * 0.85) dirOk = false;
@@ -1280,3 +1279,4 @@ document.getElementById('copy-btn').addEventListener('click', () => {
 
 </body>
 </html>
+
