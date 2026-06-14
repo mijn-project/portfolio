@@ -653,11 +653,70 @@ document.getElementById('change-video-btn').addEventListener('click', () => {
   fileInput.value = '';
 });
 
+// ── SUPABASE AUTO-SAVE ──────────────────────────────────────
+const SB_URL    = 'https://etntxeeemucvjvilfhql.supabase.co';
+const SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0bnR4ZWVlbXVjdmp2aWxmaHFsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE0NTY4OTMsImV4cCI6MjA5NzAzMjg5M30.foVP0SEYb9IecTqNP9nlWJKYR0SC00vCtu5eFvBFXno';
+const SB_BUCKET = 'Portfolio';
+
+function saveToArchive(file) {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `videos/${Date.now()}_${safeName}`;
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', `${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`);
+  xhr.setRequestHeader('Authorization', `Bearer ${SB_KEY}`);
+  xhr.setRequestHeader('apikey', SB_KEY);
+  xhr.setRequestHeader('Content-Type', file.type || 'video/mp4');
+  xhr.setRequestHeader('x-upsert', 'true');
+
+  // Kleine toast rechtsonder
+  showSaveToast('saving');
+  xhr.onload = () => {
+    if (xhr.status === 200 || xhr.status === 201) showSaveToast('done');
+    else showSaveToast('error');
+  };
+  xhr.onerror = () => showSaveToast('error');
+  xhr.send(file);
+}
+
+function showSaveToast(state) {
+  let el = document.getElementById('sb-toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'sb-toast';
+    el.style.cssText = [
+      'position:fixed','bottom:20px','right:20px','z-index:9999',
+      'padding:10px 18px','border-radius:6px','font-family:Share Tech Mono,monospace',
+      'font-size:11px','letter-spacing:2px','transition:all 0.3s',
+      'background:rgba(10,8,2,0.95)','box-shadow:0 8px 30px rgba(0,0,0,0.7)'
+    ].join(';');
+    document.body.appendChild(el);
+  }
+  if (state === 'saving') {
+    el.style.cssText += ';border:1px solid rgba(255,180,0,0.2);color:#a07830;opacity:1';
+    el.textContent = '⬆ SAVING TO ARCHIVE...';
+  } else if (state === 'done') {
+    el.style.border = '1px solid rgba(255,215,0,0.4)';
+    el.style.color = '#FFD700';
+    el.textContent = '✓ SAVED TO ARCHIVE';
+    setTimeout(() => el.style.opacity = '0', 3000);
+  } else {
+    el.style.border = '1px solid rgba(255,80,80,0.3)';
+    el.style.color = '#ff5b5b';
+    el.textContent = '✕ ARCHIVE FAILED';
+    setTimeout(() => el.style.opacity = '0', 4000);
+  }
+}
+// ────────────────────────────────────────────────────────────
+
 function loadVideo(file) {
   const url = URL.createObjectURL(file);
   video.src = url;
   // NOTE: no 'muted' attribute — audio plays
   video.load();
+
+  // Auto-save naar Supabase archief op achtergrond
+  saveToArchive(file);
+
   video.addEventListener('loadedmetadata', () => {
     document.getElementById('upload-card').style.display = 'none';
     document.getElementById('hero-section').style.display = 'none';
